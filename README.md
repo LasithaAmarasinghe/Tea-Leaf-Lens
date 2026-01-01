@@ -98,15 +98,15 @@ Below are example artifacts you can generate and store in the `results/` directo
 
 ### 3. Grad-CAM Visual Reasoning
 
-The Grad-CAM visualizations below show two representative cases side-by-side: a failure mode caused by glare, and a correct classification where the model attends to a disease region.
+The Grad-CAM visualizations below show two representative cases : a failure mode caused by glare, and a correct classification where the model attends to a disease region.
 
-<div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;">
-	<div style="flex:1;min-width:300px;text-align:center;">
-		<img src="results/result1.png" alt="Grad-CAM Misclassified" style="width:320px;max-width:100%;height:auto;"/>
+<div>
+	<div>
+		<img src="results/result1.png" alt="Grad-CAM Misclassified" />
 		<div><em>Misclassified (glare): model focuses on specular highlights rather than lesions.</em></div>
 	</div>
-	<div style="flex:1;min-width:300px;text-align:center;">
-		<img src="results/result2.png" alt="Grad-CAM Correctly Classified" style="width:320px;max-width:100%;height:auto;"/>
+	<div>
+		<img src="results/result2.png" alt="Grad-CAM Correctly Classified"/>
 		<div><em>Correctly classified: heatmap highlights the lesion/necrotic region used for the decision.</em></div>
 	</div>
 </div>
