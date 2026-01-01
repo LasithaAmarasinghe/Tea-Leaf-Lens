@@ -31,13 +31,36 @@ This system focuses on **production constraints**: minimizing model size without
 
 ---
 
+## 📂 Dataset Information
+
+The model was trained on the **Tea Sickness Dataset** (collected from Kaggle), consisting of small-scale, real-world field imagery.
+
+| Metric | Value | Notes |
+| :--- | :--- | :--- |
+| **Total Images** | 885 | High scarcity challenge |
+| **Classes** | 8 | 7 Pathologies + 1 Healthy |
+| **Split Strategy** | 80% Train / 20% Val | Stratified split |
+| **Preprocessing** | 224x224 px | MobileNetV3 Input Standard |
+
+### 🏷️ Class Labels
+The dataset includes the following 8 classes, representing common diseases in tea plantations:
+* **Fungal/Bacterial:** *Anthracnose, Algal Leaf, Bird Eye Spot, Brown Blight, Gray Blight, Red Leaf Spot, White Spot*
+* **Control:** *Healthy*
+
+### ⚙️ Data Augmentation Strategy
+Given the limited dataset size (approx. 110 images per class), aggressive data augmentation was applied during training to prevent overfitting and improve generalization:
+* **Geometric:** Random Rotation (±30°), Horizontal Flip, Zoom (20%).
+* **Positional:** Width/Height Shifts (20%) to mimic off-center camera framing.
+
+---
+
 ## 💡 The "Explainability" Insight (Engineering Spotlight)
 
 During the development phase, the model initially struggled with "Healthy" leaves under direct flash, misclassifying them as diseased.
 
 By implementing **Grad-CAM**, I visualized the model's attention layer and discovered it was triggering on **specular highlights (glare)** caused by camera flash, confusing them with white lesion spots.
 
-![Grad-CAM Debugging](YOUR_IMAGE_LINK_HERE)
+![Grad-CAM Debugging](results/result1.png)
 *Left: Original Image with Glare. Right: Heatmap showing AI falsely focusing on the reflection.*
 
 **Action Taken:** This insight confirmed that for the production hardware (`TeaRetina`), purely software fixes are insufficient. I recommended a hardware-level intervention: **Polarization filters** on the camera lens to eliminate surface glare, rather than just training on more noisy data.
