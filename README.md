@@ -20,7 +20,7 @@ This system focuses on **production constraints**: minimizing model size without
 | :--- | :--- | :--- | :--- |
 | **Model Size** | ~9.2 MB | **1.06 MB** | **9x Compression**  |
 | **Format** | FP32 Keras (.h5) | **INT8 TFLite** | Edge Compatible |
-| **Accuracy** | 88.4% (Fine-Tuned) | ~87.9% | <1% Drop |
+| **Accuracy** | 78.4% (Fine-Tuned) | ~77.9% | <1% Drop |
 
 ### 🛠️ Tech Stack
 * **Core:** TensorFlow/Keras, OpenCV, NumPy
@@ -51,19 +51,6 @@ The dataset includes the following 8 classes, representing common diseases in te
 Given the limited dataset size (approx. 110 images per class), aggressive data augmentation was applied during training to prevent overfitting and improve generalization:
 * **Geometric:** Random Rotation (±30°), Horizontal Flip, Zoom (20%).
 * **Positional:** Width/Height Shifts (20%) to mimic off-center camera framing.
-
----
-
-## 💡 The "Explainability" Insight
-
-During the development phase, the model initially struggled with "Healthy" leaves under direct flash, misclassifying them as diseased.
-
-By implementing **Grad-CAM**, I visualized the model's attention layer and discovered it was triggering on **specular highlights (glare)** caused by camera flash, confusing them with white lesion spots.
-
-![Grad-CAM Debugging](results/result1.png)
-*Left: Original Image with Glare. Right: Heatmap showing AI falsely focusing on the reflection.*
-
-**Action Taken:** This insight confirmed that for the production hardware (`TeaRetina`), purely software fixes are insufficient. I recommended a hardware-level intervention: **Polarization filters** on the camera lens to eliminate surface glare, rather than just training on more noisy data.
 
 ---
 
@@ -98,25 +85,45 @@ Below are example artifacts you can generate and store in the `results/` directo
 
 ### 1. Training Dynamics
 
-![Training vs Validation Accuracy](results/train_val_accuracy.png)
-*Accuracy evolution across epochs. Ideally, training and validation curves stay close without divergence (overfitting).* 
+![Training vs Validation Metrics](results/train_val_metrics.png)
+*Left: Training and validation accuracy across epochs. Right: Training and validation loss across epochs.* 
 
-![Training vs Validation Loss](results/train_val_loss.png)
-*Loss curves should steadily decrease and stabilize without exploding or oscillating heavily.*
+*Curves should stay close - significant divergence indicates overfitting and suggests stronger regularization or more data is needed.*
 
 ### 2. Confusion Matrix
 
-![Confusion Matrix](results/confusion_matrix.png)
-*Highlights which disease classes are most frequently confused, guiding where to collect more data or refine augmentation.*
+<img src="results/confusion_matrix.png" alt="Confusion Matrix" width="480"/>
+
+*Reduced-size confusion matrix for readability — highlights which disease classes are most frequently confused, guiding where to collect more data or refine augmentation.*
 
 ### 3. Grad-CAM Visual Reasoning
 
-The Grad-CAM visualization below is an example of how the model focuses on discriminatory regions:
+The Grad-CAM visualizations below show two representative cases side-by-side: a failure mode caused by glare, and a correct classification where the model attends to a disease region.
+
+<div style="display:flex;gap:18px;align-items:flex-start;">
+	<div style="flex:1;text-align:center;">
+		<img src="results/result1.png" alt="Grad-CAM Misclassified" width="420"/>
+		<div><em>Misclassified (glare): model focuses on specular highlights rather than lesions.</em></div>
+	</div>
+	<div style="flex:1;text-align:center;">
+		<img src="results/result2.png" alt="Grad-CAM Correctly Classified" width="420"/>
+		<div><em>Correctly classified: heatmap highlights the lesion/necrotic region used for the decision.</em></div>
+	</div>
+</div>
+
+These paired visual explanations are useful for debugging and validation: the left example demonstrates a hardware-driven failure mode (glare) that motivated the polarizing filter recommendation, while the right example confirms the model can correctly localize pathology when image quality is sufficient.
+
+---
+## 💡 The "Explainability" Insight
+
+During the development phase, the model initially struggled with "Healthy" leaves under direct flash, misclassifying them as diseased.
+
+By implementing **Grad-CAM**, I visualized the model's attention layer and discovered it was triggering on **specular highlights (glare)** caused by camera flash, confusing them with white lesion spots.
 
 ![Grad-CAM Debugging](results/result1.png)
 *Left: Original Image with Glare. Right: Heatmap showing AI falsely focusing on the reflection.*
 
-These visual explanations help validate that the model is using **pathology-related regions** (lesions, necrotic zones, color variations) instead of artifacts (background, labels, glare).
+**Action Taken:** This insight confirmed that for the production hardware (`TeaRetina`), purely software fixes are insufficient. I recommended a hardware-level intervention: **Polarization filters** on the camera lens to eliminate surface glare, rather than just training on more noisy data.
 
 ---
 
