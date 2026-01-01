@@ -173,6 +173,10 @@ To reproduce the tracking setup:
 2. Update the `REPO_OWNER` and `REPO_NAME` variables in `TeaLeaf_Lens_v2.ipynb` to match your DagsHub project.
 3. Run the notebook; MLflow will automatically log metrics and artifacts to your remote tracking server.
 
+### 🧪 Experiment Tracking 
+
+![MLflow Experiment Dashboard](results/mlflow.png)
+![MLflow Experiment Dashboard](results/mlflow2.png)
 ---
 
 ## 💻 Installation & Usage
