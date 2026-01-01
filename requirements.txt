@@ -3,3 +3,4 @@ numpy
 tensorflow
 mlflow
 dagshub
+opencv-python

@@ -94,9 +94,19 @@ Below are example artifacts you can generate and store in the `results/` directo
 
 <img src="results/confusion_matrix.png" alt="Confusion Matrix" width="480"/>
 
-*Reduced-size confusion matrix for readability — highlights which disease classes are most frequently confused, guiding where to collect more data or refine augmentation.*
+*Reduced-size confusion matrix for readability - highlights which disease classes are most frequently confused, guiding where to collect more data or refine augmentation.*
 
-### 3. Grad-CAM Visual Reasoning
+---
+
+### 3. Inference Results
+
+After training and exporting the model to TFLite, the `inference.ipynb` notebook runs the model over a selection of images from the `test images/` folder and saves a compact visualization showing predicted labels and confidences.
+
+<img src="results/inference_results.png" alt="Inference Grid" style="width:720px;max-width:100%;height:auto;"/>
+
+*Example inference grid produced by `inference.ipynb`. Each tile shows the input image and the model's top prediction with confidence - useful for quick manual validation of common prediction modes.*
+
+### 4. Grad-CAM Visual Reasoning
 
 The Grad-CAM visualizations below show two representative cases : a failure mode caused by glare, and a correct classification where the model attends to a disease region.
 
