@@ -4,8 +4,11 @@
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-orange?style=for-the-badge&logo=tensorflow)
 ![MLflow](https://img.shields.io/badge/MLOps-MLflow-blueviolet?style=for-the-badge&logo=mlflow)
 ![EdgeAI](https://img.shields.io/badge/Edge_AI-TFLite-green?style=for-the-badge)
+![Cloud](https://img.shields.io/badge/Cloud-AWS%20EC2-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
 
-> **Deployment-ready pathology detection covering edge devices and an AWS-hosted FastAPI + Streamlit stack, backed by explainable AI and reproducible MLOps.**
+> **Deployment-ready pathology detection system featuring edge-optimized inference, an AWS-hosted FastAPI/Streamlit architecture, and Explainable AI.**
 
 ## 🚀 Project Overview
 **TeaLeaf Lens** automates tea-leaf quality control by detecting 8 disease classes (e.g., *Anthracnose*, *Red Leaf Spot*, *Algal Leaf*). The same INT8 TensorFlow Lite model powers:
