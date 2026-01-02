@@ -1,6 +1,12 @@
 kagglehub
-numpy
-tensorflow
 mlflow
 dagshub
 opencv-python
+tensorflow-cpu
+numpy
+pillow
+fastapi
+uvicorn
+python-multipart
+streamlit
+requests

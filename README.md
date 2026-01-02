@@ -67,12 +67,20 @@ This project moves beyond "notebook coding" by implementing a full experiment tr
 ## 🧱 Project Structure
 
 ```text
-Tea-Leaf-Lens/
-├── TeaLeaf_Lens_v1.ipynb      # Early experiments / baseline
-├── TeaLeaf_Lens_v2.ipynb      # Main training + MLflow + TFLite pipeline
-├── tea-sickness-dataset/      # Local copy of the Kaggle dataset (git-ignored)
-├── results/                   # Plots, Grad-CAM visualizations, confusion matrix (optional)
-└── README.md                  # Project documentation (this file)
+TEA-LEAF-LENS/
+├── 📂 mlruns/
+├── 📂 results/
+├── 📂 tea-sickness-dataset/
+├── 📂 test images/
+├── .gitignore
+├── app.py                  <-- FastAPI Backend
+├── ui.py                   <-- Streamlit Frontend
+├── inference.ipynb
+├── README.md
+├── requirements.txt        
+├── TeaLeaf_Lens_v1.ipynb
+├── TeaLeaf_Lens_v2.ipynb
+└── tealeaf.tflite          <-- The Model
 ```
 
 > Note: The dataset folder is intentionally excluded from version control via `.gitignore` to keep the repo lightweight.
