@@ -1,16 +1,44 @@
-# 🍃 TeaLeaf Lens: Edge-AI Quality Inspection System
+﻿# 🍃 TeaLeaf Lens: Edge–Cloud Quality Inspection System
 
 ![Python](https://img.shields.io/badge/Python-3.10-blue?style=for-the-badge&logo=python)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-orange?style=for-the-badge&logo=tensorflow)
 ![MLflow](https://img.shields.io/badge/MLOps-MLflow-blueviolet?style=for-the-badge&logo=mlflow)
 ![EdgeAI](https://img.shields.io/badge/Edge_AI-TFLite-green?style=for-the-badge)
 
-> **Deployment-ready pathology detection system optimized for constrained edge devices, featuring explainable AI (XAI) and full MLOps tracking.**
+> **Deployment-ready pathology detection covering edge devices and an AWS-hosted FastAPI + Streamlit stack, backed by explainable AI and reproducible MLOps.**
 
 ## 🚀 Project Overview
-**TeaLeaf Lens** is a computer vision system designed to automate the quality control process in tea manufacturing. It detects 8 distinct classes of tea leaf pathologies (including *Anthracnose*, *Red Leaf Spot*, and *Algal Leaf*) with high accuracy, capable of running on low-power microcontrollers or mobile devices.
+**TeaLeaf Lens** automates tea-leaf quality control by detecting 8 disease classes (e.g., *Anthracnose*, *Red Leaf Spot*, *Algal Leaf*). The same INT8 TensorFlow Lite model powers:
 
-This system focuses on **production constraints**: minimizing model size without sacrificing recall, and ensuring decision transparency through Grad-CAM.
+* **Edge inference** on low-power microcontrollers and mobile hardware.
+* **Cloud inference** on an AWS EC2 stack that exposes a REST API and Streamlit dashboard.
+
+The system prioritizes compact models, transparent decisions via Grad-CAM, and full experiment traceability through MLflow/DagsHub.
+
+### 🔑 Key Capabilities
+* Sub-megabyte inference graph optimized for MobileNetV3-Small and PTQ.
+* Grad-CAM driven diagnostics that informed both software tuning and optics recommendations.
+* Remote serving pipeline hardened for t2.micro instances (swap provisioning, FastAPI concurrency, Streamlit UI).
+
+---
+
+## 🧱 System Architecture
+
+```text
+Data → Training (Keras + MLflow) → Quantization (TFLite) →
+┌──────────────────────┐     ┌───────────────────────────┐
+│ Edge Device          │     │ AWS EC2 Cloud Stack       │
+│ • Microcontroller    │     │ • FastAPI backend (REST)  │
+│ • Mobile deployment  │     │ • Streamlit UI            │
+└──────────────────────┘     └───────────────────────────┘			 
+```
+
+### 🛠️ Tech Stack
+* **Modeling:** TensorFlow/Keras, MobileNetV3-Small backbone, OpenCV, NumPy.
+* **Optimization:** Post-Training Quantization → INT8 `.tflite`.
+* **Explainability:** Grad-CAM for saliency-backed validation.
+* **MLOps:** MLflow tracking hosted on DagsHub.
+* **Cloud:** AWS EC2 (Ubuntu 24.04), FastAPI, Streamlit, Uvicorn, swap-tuned t2.micro setup.
 
 ---
 
@@ -18,49 +46,93 @@ This system focuses on **production constraints**: minimizing model size without
 
 | Metric | Original (MobileNetV3) | **TeaLeaf Lens (Quantized)** | Improvement |
 | :--- | :--- | :--- | :--- |
-| **Model Size** | ~9.2 MB | **1.06 MB** | **9x Compression**  |
+| **Model Size** | ~9.2 MB | **1.06 MB** | **9x Compression** |
 | **Format** | FP32 Keras (.h5) | **INT8 TFLite** | Edge Compatible |
 | **Accuracy** | 78.4% (Fine-Tuned) | ~77.9% | <1% Drop |
-
-### 🛠️ Tech Stack
-* **Core:** TensorFlow/Keras, OpenCV, NumPy
-* **Architecture:** MobileNetV3-Small (Transfer Learning + Fine-Tuning)
-* **Optimization:** Post-Training Quantization (PTQ)
-* **MLOps:** MLflow & DagsHub for experiment tracking
-* **Explainability:** Grad-CAM (Gradient-weighted Class Activation Mapping)
 
 ---
 
 ## 📂 Dataset Information
 
-The model was trained on the **Tea Sickness Dataset** (collected from Kaggle), consisting of small-scale, real-world field imagery.
+The model uses the **Tea Sickness Dataset** (Kaggle, natural field imagery).
 
 | Metric | Value | Notes |
 | :--- | :--- | :--- |
 | **Total Images** | 885 | High scarcity challenge |
 | **Classes** | 8 | 7 Pathologies + 1 Healthy |
 | **Split Strategy** | 80% Train / 20% Val | Stratified split |
-| **Preprocessing** | 224x224 px | MobileNetV3 Input Standard |
+| **Preprocessing** | 224×224 px | MobileNetV3 Input Standard |
 
 ### 🏷️ Class Labels
-The dataset includes the following 8 classes, representing common diseases in tea plantations:
 * **Fungal/Bacterial:** *Anthracnose, Algal Leaf, Bird Eye Spot, Brown Blight, Gray Blight, Red Leaf Spot, White Spot*
 * **Control:** *Healthy*
 
-### ⚙️ Data Augmentation Strategy
-Given the limited dataset size (approx. 110 images per class), aggressive data augmentation was applied during training to prevent overfitting and improve generalization:
-* **Geometric:** Random Rotation (±30°), Horizontal Flip, Zoom (20%).
-* **Positional:** Width/Height Shifts (20%) to mimic off-center camera framing.
+### ⚙️ Data Augmentation
+Aggressive augmentation offsets the small dataset (~110 images/class):
+* **Geometric:** Random rotation (±30°), horizontal flip, 20% zoom.
+* **Positional:** 20% width/height shifts to mimic imprecise framing.
+
+---
+
+## 📈 Results & Visualizations
+
+Artifacts live under `results/` for audit trails and reporting.
+
+1. **Training Dynamics** – accuracy/loss curves for overfitting diagnosis.  
+	![Training vs Validation Metrics](results/train_val_metrics.png)
+2. **Confusion Matrix** – highlights confusing pathology pairs.  
+	<img src="results/confusion_matrix.png" alt="Confusion Matrix" width="480"/>
+3. **Inference Grid** – batch predictions with confidences generated via `inference.ipynb`.  
+	<img src="results/inference_results.png" alt="Inference Grid" style="width:720px;max-width:100%;height:auto;"/>
+4. **Grad-CAM Visual Reasoning** – success/failure attention heatmaps.  
+	<div>
+	<div>
+		<img src="results/result1.png" alt="Grad-CAM Misclassified" />
+		<div><em>Misclassified (glare) – the model locks onto specular reflections.</em></div>
+	</div>
+	<div>
+		<img src="results/result2.png" alt="Grad-CAM Correctly Classified"/>
+		<div><em>Correctly classified – activation centered on the lesion site.</em></div>
+	</div>
+	</div>
+
+---
+
+## 💡 Explainability Insight
+
+Grad-CAM exposed that "Healthy" leaves shot with flash were flagged as diseased because the network associated specular highlights with white lesion spots.
+
+![Grad-CAM Debugging](results/result1.png)
+
+**Mitigation:** Beyond collecting more data, the deployment guide now recommends **polarizing filters** (TeaRetina camera) to suppress glare, proving how XAI can influence optical design—not just model tuning.
+
+---
+
+## 🧠 Design Decisions
+
+* **MobileNetV3-Small Backbone** – optimal accuracy/latency compromise for ARM-class CPUs.
+* **Transfer Learning** – ImageNet initialization prevents overfitting on 885 samples.
+* **Aggressive Augmentation** – simulates user handling variance.
+* **Post-Training Quantization** – compresses to 1.06 MB with negligible accuracy loss.
+* **Explainability Feedback Loop** – Grad-CAM drives both model debugging and hardware guidance.
+* **MLOps-First Mindset** – every experiment logged to MLflow/DagsHub for reproducibility.
 
 ---
 
 ## 🔄 MLOps Pipeline
 
-This project moves beyond "notebook coding" by implementing a full experiment tracking pipeline using **MLflow** hosted on **DagsHub**.
+* **Experiment Tracking:** Hyperparameters, metrics, and artifacts versioned via MLflow (remote backend on DagsHub).
+* **Metric Logging:** Correlates validation accuracy with `.tflite` footprint to enforce device budgets.
+* **Artifacts:** Best INT8 model per run kept for auditing.
 
-* **Experiment Tracking:** Logs every run's Hyperparameters (Learning Rate, Dropout).
-* **Metric Logging:** Automatically tracks `Validation Accuracy` vs. `TFLite File Size`.
-* **Artifacts:** Stores the best `.tflite` model version for every run.
+To reproduce:
+1. Fork/create a DagsHub repo.
+2. Set `REPO_OWNER` and `REPO_NAME` inside `TeaLeaf_Lens_v2.ipynb`.
+3. Execute the notebook; MLflow automatically syncs runs, metrics, and TFLite artifacts.
+
+### 🧪 Experiment Dashboard
+![MLflow Experiment Dashboard](results/mlflow.png)
+![MLflow Experiment Dashboard](results/mlflow2.png)
 
 ---
 
@@ -68,287 +140,153 @@ This project moves beyond "notebook coding" by implementing a full experiment tr
 
 ```text
 TEA-LEAF-LENS/
-├── 📂 mlruns/
-├── 📂 results/
-├── 📂 tea-sickness-dataset/
-├── 📂 test images/
-├── .gitignore
-├── app.py                  <-- FastAPI Backend
-├── ui.py                   <-- Streamlit Frontend
+├── mlruns/                 # MLflow artifacts
+├── results/                # Plots, Grad-CAM visuals, dashboards
+├── tea-sickness-dataset/   # Kaggle dataset (ignored in git)
+├── test images/            # Held-out inference samples
+├── app.py                  # FastAPI backend
+├── ui.py                   # Streamlit frontend
 ├── inference.ipynb
-├── README.md
-├── requirements.txt        
 ├── TeaLeaf_Lens_v1.ipynb
-├── TeaLeaf_Lens_v2.ipynb
-└── tealeaf.tflite          <-- The Model
+├── TeaLeaf_Lens_v2.ipynb   # Main training + MLflow notebook
+├── tealeaf.tflite          # Quantized model
+├── requirements.txt
+└── README.md
 ```
 
-> Note: The dataset folder is intentionally excluded from version control via `.gitignore` to keep the repo lightweight.
-
----
-
-## 📈 Results & Visualizations
-
-Below are example artifacts you can generate and store in the `results/` directory for analysis and reporting.
-
-### 1. Training Dynamics
-
-![Training vs Validation Metrics](results/train_val_metrics.png)
-*Left: Training and validation accuracy across epochs. Right: Training and validation loss across epochs.* 
-
-*Curves should stay close - significant divergence indicates overfitting and suggests stronger regularization or more data is needed.*
-
-### 2. Confusion Matrix
-
-<img src="results/confusion_matrix.png" alt="Confusion Matrix" width="480"/>
-
-*Reduced-size confusion matrix for readability - highlights which disease classes are most frequently confused, guiding where to collect more data or refine augmentation.*
-
----
-
-### 3. Inference Results
-
-After training and exporting the model to TFLite, the `inference.ipynb` notebook runs the model over a selection of images from the `test images/` folder and saves a compact visualization showing predicted labels and confidences.
-
-<img src="results/inference_results.png" alt="Inference Grid" style="width:720px;max-width:100%;height:auto;"/>
-
-*Example inference grid produced by `inference.ipynb`. Each tile shows the input image and the model's top prediction with confidence - useful for quick manual validation of common prediction modes.*
-
-### 4. Grad-CAM Visual Reasoning
-
-The Grad-CAM visualizations below show two representative cases : a failure mode caused by glare, and a correct classification where the model attends to a disease region.
-
-<div>
-	<div>
-		<img src="results/result1.png" alt="Grad-CAM Misclassified" />
-		<div><em>Misclassified (glare): model focuses on specular highlights rather than lesions.</em></div>
-	</div>
-	<div>
-		<img src="results/result2.png" alt="Grad-CAM Correctly Classified"/>
-		<div><em>Correctly classified: heatmap highlights the lesion/necrotic region used for the decision.</em></div>
-	</div>
-</div>
-
-These paired visual explanations are useful for debugging and validation: the left example demonstrates a hardware-driven failure mode (glare) that motivated the polarizing filter recommendation, while the right example confirms the model can correctly localize pathology when image quality is sufficient.
-
----
-## 💡 The "Explainability" Insight
-
-During the development phase, the model initially struggled with "Healthy" leaves under direct flash, misclassifying them as diseased.
-
-By implementing **Grad-CAM**, I visualized the model's attention layer and discovered it was triggering on **specular highlights (glare)** caused by camera flash, confusing them with white lesion spots.
-
-![Grad-CAM Debugging](results/result1.png)
-*Left: Original Image with Glare. Right: Heatmap showing AI falsely focusing on the reflection.*
-
-**Action Taken:** This insight confirmed that for the production hardware (`TeaRetina`), purely software fixes are insufficient. I recommended a hardware-level intervention: **Polarization filters** on the camera lens to eliminate surface glare, rather than just training on more noisy data.
-
----
-
-## 🧠 Design Decisions & Reasoning
-
-- **MobileNetV3-Small Backbone**  
-	Chosen due to its balance between accuracy and latency on edge devices (ARM CPUs, mobile SoCs and microcontrollers). Its depthwise separable convolutions and squeeze-excitation blocks allow high representational power at low parameter counts.
-
-- **Transfer Learning on Limited Data**  
-	With only 885 images, training from scratch would severely overfit. Initializing from ImageNet-pretrained weights provides robust low-level features (edges, textures, color blobs) and reduces required training data.
-
-- **Aggressive Data Augmentation**  
-	Rotations, shifts and flips mimic real-world camera variation in the field, making the system more robust to user handling, leaf orientation and framing.
-
-- **Post-Training Quantization (PTQ)**  
-	PTQ is applied to convert the FP32 model to an INT8 TFLite model, providing ~9x compression with minimal accuracy loss. This is critical for flash-constrained devices and for reducing inference latency.
-
-- **Explainability as a Hardware Signal**  
-	Grad-CAM did not just explain predictions; it exposed a **hardware issue** (flash glare). Instead of merely engineering around it in software, the insight informed the camera design (polarizing filters / controlled illumination), showcasing how XAI can drive end-to-end system improvements.
-
-- **MLOps-First Mindset**  
-	All training runs are logged to MLflow on DagsHub, allowing reproducible experiments, hyperparameter sweeps and easy comparison of trade-offs (e.g., accuracy vs. TFLite size) before locking in a model for deployment.
-
----
-
-## 🔄 MLOps Pipeline
-
-This project moves beyond "notebook coding" by implementing a full experiment tracking pipeline using **MLflow** hosted on **DagsHub**.
-
-* **Experiment Tracking:** Logs every run's Hyperparameters (Learning Rate, Dropout).
-* **Metric Logging:** Automatically tracks `Validation Accuracy` vs. `TFLite File Size`.
-* **Artifacts:** Stores the best `.tflite` model version for every run.
-
-To reproduce the tracking setup:
-
-1. Create or fork a repository on DagsHub.
-2. Update the `REPO_OWNER` and `REPO_NAME` variables in `TeaLeaf_Lens_v2.ipynb` to match your DagsHub project.
-3. Run the notebook; MLflow will automatically log metrics and artifacts to your remote tracking server.
-
-### 🧪 Experiment Tracking 
-
-![MLflow Experiment Dashboard](results/mlflow.png)
-![MLflow Experiment Dashboard](results/mlflow2.png)
----
-
-## 💻 Installation & Usage
-
-### 1. Clone the Repo
-
-```bash
-git clone https://github.com/LasithaAmarasinghe/Tea-Leaf-Lens.git
-cd Tea-Leaf-Lens
-```
-
-### 2. Create and Activate Conda Environment (Recommended)
-
-```bash
-conda create -n tea python=3.9 -y
-conda activate tea
-pip install -r requirements.txt
-```
-
-### 3. Run the Training Notebook
-
-You can run the main pipeline interactively:
-
-```bash
-jupyter notebook TeaLeaf_Lens_v2.ipynb
-```
-
-Then execute all cells in the notebook to:
-- Connect to DagsHub
-- Build and train the MobileNetV3-Small model
-- Quantize to TFLite
-- Log metrics and artifacts to MLflow
-
-### 4. Launch MLflow UI (Optional, Local)
-
-If you are using a local MLflow backend, you can inspect runs via:
-
-```bash
-mlflow ui
-```
-
-When using DagsHub as the MLflow backend, you can instead view all runs directly in the DagsHub web interface.
+> Dataset directories stay out of version control via `.gitignore` to keep the repo portable.
 
 ---
 
 ## ☁️ Cloud Deployment & Web Interface
 
-The project includes a production-ready deployment pipeline hosted on **AWS EC2**, serving real-time predictions via a **FastAPI** backend and an interactive **Streamlit** frontend.
+The AWS deployment mirrors the edge graph for centralized inference and provides both human and machine interfaces.
 
-### 🏗️ Architecture
-* **Cloud Provider:** AWS EC2 (Ubuntu Server)
-* **Backend:** FastAPI (High-performance inference engine)
-* **Frontend:** Streamlit (User-friendly dashboard)
-* **Model:** TensorFlow Lite (Quantized MobileNetV3-Small)
-* **Server Optimization:** Implemented Linux Swap Memory to handle TensorFlow dependencies on resource-constrained environments (t2.micro).
+### 🏗️ Cloud Architecture
+* **Provider:** AWS EC2 (Ubuntu 24.04 LTS, `t2.micro`).
+* **Backend:** FastAPI + Uvicorn exposing REST + auto Swagger docs.
+* **Frontend:** Streamlit dashboard for analysts and agronomists.
+* **Model Runtime:** TensorFlow Lite interpreter with server-side preprocessing.
+* **Ops Hardening:** 2 GB swap file ensures TensorFlow installs cleanly on 1 GB RAM nodes.
 
 ### 🚀 Features
-* **REST API:** Fully documented API endpoints using Swagger UI (auto-generated by FastAPI).
-* **Real-time Inference:** Low-latency predictions using the optimized TFLite model.
-* **Interactive UI:** A user-friendly web interface for uploading images and viewing confidence scores per class.
-* **Robust Preprocessing:** server-side image resizing and tensor validation to match MobileNetV3-Small input requirements.
+* **REST API:** Documented via Swagger, portable for mobile/IoT integrations.
+* **Real-time Inference:** Sub-second latency thanks to INT8 execution.
+* **Interactive UI:** Upload, preview, and inspect per-class confidences.
+* **Robust Preprocessing:** Validates tensor shapes to match MobileNetV3 expectations.
 
 ### 📸 Interface
 
 | **Interactive Web UI (Streamlit)** | **API Documentation (Swagger UI)** |
 |:----------------------------------:|:----------------------------------:|
 | ![Streamlit UI](results/streamlit.png) | ![Swagger API](results/swagger.png) |
-| *Real-time classification of Tea Leaf Diseases* | *FastAPI automated documentation* |
+| *Real-time classification dashboard* | *Auto-generated API contract* |
 
 ---
 
 ## ☁️ AWS Deployment Walkthrough
 
-Here is the step-by-step process used to deploy the Tea Leaf Lens application on Amazon Web Services (AWS).
+Here is the end-to-end process used to stand up TeaLeaf Lens on AWS.
 
-### Step 1: Launching the Cloud Server (EC2)
-1.  Log in to the **AWS Console** and navigate to **EC2**.
-2.  Click **Launch Instance**.
-3.  **Name:** `Tea-Leaf-Inference-Server`.
-4.  **OS Image:** Select **Ubuntu Server 24.04 LTS** (Free Tier Eligible).
-5.  **Instance Type:** Select `t2.micro` (1 vCPU, 1 GB RAM).
-6.  **Key Pair:** Create a new key pair (e.g., `my-aws-key.pem`) and **download it** to your local machine.
+### Step 1: Launch the EC2 Instance
+1. Log into the **AWS Console** and open **EC2**.
+2. Click **Launch Instance** and set **Name** = `Tea-Leaf-Inference-Server`.
+3. Choose **Ubuntu Server 24.04 LTS** (Free Tier eligible) as the AMI.
+4. Select instance type `t2.micro` (1 vCPU, 1 GB RAM).
+5. Create/download an SSH key pair (e.g., `my-aws-key.pem`).
 
-### Step 2: Configuring the Firewall (Security Groups)
-By default, AWS blocks all traffic. To allow access, configure the **Security Group** Inbound Rules:
+### Step 2: Configure Security Group (Firewall)
+Allow traffic needed for remote management, API inference, and the UI.
 
 | Type | Port | Source | Purpose |
 | :--- | :--- | :--- | :--- |
-| **SSH** | 22 | `0.0.0.0/0` | Remote Terminal Access |
-| **Custom TCP** | 8000 | `0.0.0.0/0` | FastAPI Backend Access |
-| **Custom TCP** | 8501 | `0.0.0.0/0` | Streamlit Frontend Access |
+| **SSH** | 22 | `0.0.0.0/0` | Remote terminal access |
+| **Custom TCP** | 8000 | `0.0.0.0/0` | FastAPI backend |
+| **Custom TCP** | 8501 | `0.0.0.0/0` | Streamlit UI |
 
-### Step 3: Connecting to the Server
-Open a terminal on your local machine and run:
+Restrict sources to your corporate CIDR if required by policy.
+
+### Step 3: Connect via SSH
 ```bash
-# Set permission for the key file (Linux/Mac only)
+# Set key permissions (Linux/macOS)
 chmod 400 my-aws-key.pem
-
-# Connect via SSH
+# Replace with the EC2 public IP or DNS
 ssh -i "my-aws-key.pem" ubuntu@<YOUR-EC2-PUBLIC-IP>
 ```
 
-### Step 4: Environment Setup & Optimization
+### Step 4: Prepare the Environment
+Once on the server:
 
-Once connected to the AWS terminal:
+1. **Update the OS**
+	```bash
+	sudo apt update && sudo apt upgrade -y
+	```
+2. **Provision Swap (critical for t2.micro + TensorFlow)**
+	```bash
+	sudo fallocate -l 2G /swapfile
+	sudo chmod 600 /swapfile
+	sudo mkswap /swapfile
+	sudo swapon /swapfile
+	```
+3. **Install Python Tooling**
+	```bash
+	sudo apt install python3-pip python3-venv -y
+	```
 
-#### 1. Update System:
+### Step 5: Deploy the Application
+1. **Clone the Repository**
+	```bash
+	git clone https://github.com/LasithaAmarasinghe/Tea-Leaf-Lens.git
+	cd Tea-Leaf-Lens
+	```
+2. **Create Virtual Environment + Install Dependencies**
+	```bash
+	python3 -m venv venv
+	source venv/bin/activate
+	pip install tensorflow-cpu fastapi uvicorn streamlit requests pillow python-multipart
+	```
+3. **Start Backend and Frontend (persist via nohup)**
+	```bash
+	nohup uvicorn app:app --host 0.0.0.0 --port 8000 > backend.log 2>&1 &
+	nohup streamlit run ui.py --server.port 8501 > frontend.log 2>&1 &
+	```
 
-```bash
-sudo apt update && sudo apt upgrade -y
-```
+### Step 6: Validate the Deployment
+* Streamlit UI: `http://<YOUR-EC2-PUBLIC-IP>:8501`
+* FastAPI Swagger: `http://<YOUR-EC2-PUBLIC-IP>:8000/docs`
 
-#### 2: Configure Swap Memory (Critical for t2.micro)
+Both services can be monitored through `backend.log` and `frontend.log` (tail the files to verify uptime).
 
-Since t2.micro only has 1GB RAM, TensorFlow installation can crash the server. Add 2GB of Swap memory:
+---
 
-```bash
-sudo fallocate -l 2G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-```
-#### 3. Install Python & Virtual Environment:
+## 💻 Local Installation & Usage
 
-```bash
-sudo apt install python3-pip python3-venv -y
-```
-### Step 5: Application Deployment
+1. **Clone the Repo**  
+	```bash
+	git clone https://github.com/LasithaAmarasinghe/Tea-Leaf-Lens.git
+	cd Tea-Leaf-Lens
+	```
+2. **Create Environment** (Conda recommended)  
+	```bash
+	conda create -n tea python=3.9 -y
+	conda activate tea
+	pip install -r requirements.txt
+	```
+3. **Run Training Notebook**  
+	```bash
+	jupyter notebook TeaLeaf_Lens_v2.ipynb
+	```
+	Execute all cells to connect to DagsHub, fine-tune MobileNetV3-Small, quantize to TFLite, and log MLflow artifacts.
+4. **Optional Local MLflow UI**  
+	```bash
+	mlflow ui
+	```
+	Inspect runs locally or on DagsHub depending on your backend URL.
 
-#### 1. Clone the Repository:
-
-```bash
-git clone [https://github.com/LasithaAmarasinghe/Tea-Leaf-Lens.git](https://github.com/LasithaAmarasinghe/Tea-Leaf-Lens.git)
-cd Tea-Leaf-Lens
-```
-#### 2. Install Dependencies:
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install tensorflow-cpu fastapi uvicorn streamlit requests pillow python-multipart
-```
-
-#### 3. Run the Services (Background Mode): Use nohup to keep the app running after closing the SSH session.
-
-```bash
-# Start Backend on Port 8000
-nohup uvicorn main:app --host 0.0.0.0 --port 8000 > backend.log 2>&1 &
-
-# Start Frontend on Port 8501
-nohup streamlit run ui.py --server.port 8501 > frontend.log 2>&1 &
-```
-
-### Step 6: Accessing the App
-
-The application is now live at: 
-
-[http://[YOUR-EC2-PUBLIC-IP]:8501](http://<YOUR-EC2-PUBLIC-IP>:8501)
-
-Replace `[YOUR-EC2-PUBLIC-IP]` with your actual EC2 public IP address.
-
+---
 
 ## 🔭 Future Work
 
-- Explore **quantization-aware training (QAT)** to further reduce the accuracy drop after quantization.
-- Extend dataset with **multi-season, multi-region** images to improve robustness to climate and cultivar variation.
+* Explore **quantization-aware training (QAT)** to squeeze additional accuracy from INT8 deployment.
+* Grow the dataset with **multi-season, multi-region** samples for better climate/cultivar robustness.
 
