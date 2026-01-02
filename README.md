@@ -269,7 +269,7 @@ Here is the step-by-step process used to deploy the Tea Leaf Lens application on
 6.  **Key Pair:** Create a new key pair (e.g., `my-aws-key.pem`) and **download it** to your local machine.
 
 ### Step 2: Configuring the Firewall (Security Groups)
-By default, AWS blocks all traffic. To allow access, we configured the **Security Group** Inbound Rules:
+By default, AWS blocks all traffic. To allow access, configure the **Security Group** Inbound Rules:
 
 | Type | Port | Source | Purpose |
 | :--- | :--- | :--- | :--- |
@@ -299,7 +299,7 @@ sudo apt update && sudo apt upgrade -y
 
 #### 2: Configure Swap Memory (Critical for t2.micro)
 
-Since t2.micro only has 1GB RAM, TensorFlow installation can crash the server. We added 2GB of Swap memory:
+Since t2.micro only has 1GB RAM, TensorFlow installation can crash the server. Add 2GB of Swap memory:
 
 ```bash
 sudo fallocate -l 2G /swapfile
@@ -328,7 +328,7 @@ source venv/bin/activate
 pip install tensorflow-cpu fastapi uvicorn streamlit requests pillow python-multipart
 ```
 
-#### 3. Run the Services (Background Mode): We used nohup to keep the app running after closing the SSH session.
+#### 3. Run the Services (Background Mode): Use nohup to keep the app running after closing the SSH session.
 
 ```bash
 # Start Backend on Port 8000
@@ -342,9 +342,9 @@ nohup streamlit run ui.py --server.port 8501 > frontend.log 2>&1 &
 
 The application is now live at: 
 
-[http://<YOUR-EC2-PUBLIC-IP>:8501](http://<YOUR-EC2-PUBLIC-IP>:8501)
+[http://[YOUR-EC2-PUBLIC-IP]:8501](http://<YOUR-EC2-PUBLIC-IP>:8501)
 
-Replace `<YOUR-EC2-PUBLIC-IP>` with your actual EC2 public IP address.
+Replace `[YOUR-EC2-PUBLIC-IP]` with your actual EC2 public IP address.
 
 
 ## 🔭 Future Work
